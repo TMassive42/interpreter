@@ -28,46 +28,68 @@ func (l *Lexer) readChar() {
     l.readPosition++
 }
 
+
 func (l *Lexer) NextToken() token.Token {
     var tok token.Token
-
     l.skipWhitespace()
 
     switch l.ch {
     case '=':
-        tok = token.Token{Type: token.ASSIGN, Literal: string(l.ch)}
+        tok = newToken(token.ASSIGN, l.ch)
     case '+':
-        tok = token.Token{Type: token.PLUS, Literal: string(l.ch)}
+        tok = newToken(token.PLUS, l.ch)
+    case '-':
+        tok = newToken(token.MINUS, l.ch)
+    case '*':
+        tok = newToken(token.ASTERISK, l.ch)
+    case '/':
+        tok = newToken(token.SLASH, l.ch)
+    case '<':
+        tok = newToken(token.LT, l.ch)
+    case '>':
+        tok = newToken(token.GT, l.ch)
     case ',':
-        tok = token.Token{Type: token.COMMA, Literal: string(l.ch)}
+        tok = newToken(token.COMMA, l.ch)
     case ';':
-        tok = token.Token{Type: token.SEMICOLON, Literal: string(l.ch)}
+        tok = newToken(token.SEMICOLON, l.ch)
     case '(':
-        tok = token.Token{Type: token.LPAREN, Literal: string(l.ch)}
+        tok = newToken(token.LPAREN, l.ch)
     case ')':
-        tok = token.Token{Type: token.RPAREN, Literal: string(l.ch)}
+        tok = newToken(token.RPAREN, l.ch)
     case '{':
-        tok = token.Token{Type: token.LBRACE, Literal: string(l.ch)}
+        tok = newToken(token.LBRACE, l.ch)
     case '}':
-        tok = token.Token{Type: token.RBRACE, Literal: string(l.ch)}
+        tok = newToken(token.RBRACE, l.ch)
+    case '[':
+        tok = newToken(token.LBRACKET, l.ch)
+    case ']':
+        tok = newToken(token.RBRACKET, l.ch)
+    case '"':
+        tok.Type = token.STRING
+        tok.Literal = l.readString()
+    case '.':
+        tok = newToken(token.DOT, l.ch)
     case 0:
-        tok = token.Token{Type: token.EOF, Literal: ""}
+        tok.Literal = ""
+        tok.Type = token.EOF
     default:
         if isLetter(l.ch) {
             tok.Literal = l.readIdentifier()
             tok.Type = l.lookupIdent(tok.Literal)
             return tok
         } else if isDigit(l.ch) {
-            tok.Literal = l.readNumber()
-            tok.Type = token.INT
-            return tok
+            return l.readNumber()
         } else {
-            tok = token.Token{Type: token.ILLEGAL, Literal: string(l.ch)}
+            tok = newToken(token.ILLEGAL, l.ch)
         }
     }
 
     l.readChar()
     return tok
+}
+
+func newToken(tokenType token.TokenType, ch rune) token.Token {
+    return token.Token{Type: tokenType, Literal: string(ch)}
 }
 
 func (l *Lexer) readIdentifier() string {
@@ -78,12 +100,31 @@ func (l *Lexer) readIdentifier() string {
     return l.input[position:l.position]
 }
 
-func (l *Lexer) readNumber() string {
-    position := l.position
+
+func (l *Lexer) readString() string {
+    position := l.position + 1
+    for {
+        l.readChar()
+        if l.ch == '"' || l.ch == 0 {
+            break
+        }
+    }
+    return l.input[position:l.position]
+}
+
+func (l *Lexer) readNumber() token.Token {
+    startPosition := l.position
     for isDigit(l.ch) {
         l.readChar()
     }
-    return l.input[position:l.position]
+    if l.ch == '.' {
+        l.readChar()
+        for isDigit(l.ch) {
+            l.readChar()
+        }
+        return token.Token{Type: token.FLOAT, Literal: l.input[startPosition:l.position]}
+    }
+    return token.Token{Type: token.INT, Literal: l.input[startPosition:l.position]}
 }
 
 func (l *Lexer) skipWhitespace() {
@@ -104,9 +145,24 @@ func (l *Lexer) lookupIdent(ident string) token.TokenType {
     keywords := map[string]token.TokenType{
         "function": token.FUNCTION,
         "output":   token.OUTPUT,
+        "if":   token.IF,
+        "else":   token.ELSE,
+        "and":   token.AND,
+        "or":   token.OR,
+        "not":   token.NOT,
+        "null":     token.NULL_TYPE,
+        "bool":     token.BOOL_TYPE,
+        "int":      token.INT_TYPE,
+        "float":    token.FLOAT_TYPE,
+        "string":   token.STRING_TYPE,
+        "array":    token.ARRAY_TYPE,
+        "object":   token.OBJECT_TYPE,
     }
     if tok, ok := keywords[ident]; ok {
         return tok
+    }
+    if ident == "true" || ident == "false" {
+        return token.BOOL
     }
     return token.IDENT
 }
