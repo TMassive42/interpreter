@@ -127,18 +127,18 @@ func (l *Lexer) readNumber() token.Token {
     return token.Token{Type: token.INT, Literal: l.input[startPosition:l.position]}
 }
 
-func (l *Lexer) skipWhitespace() {
-    for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-        l.readChar()
-    }
-}
-
 func isLetter(ch rune) bool {
     return unicode.IsLetter(ch) || ch == '_'
 }
 
 func isDigit(ch rune) bool {
     return unicode.IsDigit(ch)
+}
+
+func (l *Lexer) skipWhitespace() {
+    for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+        l.readChar()
+    }
 }
 
 func (l *Lexer) lookupIdent(ident string) token.TokenType {
