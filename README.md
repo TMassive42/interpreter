@@ -37,6 +37,13 @@ func (l *Lexer) NextToken() token.Token
     Keywords: Reserved words (e.g., if, else).
     Operators: Symbols like +, -, =, etc.
     End of File: token.EOF signals the end of input.
+
+### Helper Functions
+
+    readChar(): Reads the next character.
+    readIdentifier(): Reads identifiers and checks for keywords.
+    skipWhitespace(): Skips over spaces, tabs, and newlines.
+
 ### Example Usage
 
 The lexer reads an input string, processes characters one by one, and generates tokens used in parsing.
@@ -49,13 +56,6 @@ lexer := NewLexer(input)
 for tok := lexer.NextToken(); tok.Type != token.EOF; tok = lexer.NextToken() {
     fmt.Printf("%+v\n", tok)
 }
-### Helper Functions
-
-    readChar(): Reads the next character.
-    readIdentifier(): Reads identifiers and checks for keywords.
-    skipWhitespace(): Skips over spaces, tabs, and newlines.
-
-
 ```
 ### Token Types
 
